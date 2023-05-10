@@ -42,7 +42,6 @@ export const App = () => {
     setModalOpen(true);
     setModalAlt(e.target.alt);
     setModalImg(e.target.name);
-    console.log(258);
   };
 
   const handleModalClose = () => {
