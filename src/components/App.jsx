@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { fetchImages } from './api/fetchImages';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -7,100 +7,74 @@ import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import React from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    isLoading: false,
-    currentSearch: '',
-    pageNr: 1,
-    modalOpen: false,
-    modalImg: '',
-    modalAlt: '',
-    error: '',
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState('');
+  const [pageNr, setPageNr] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImg, setModalImg] = useState('');
+  const [modalAlt, setModalAlt] = useState('');
+
+  const handleSubmit = query => {
+    setImages([]);
+    setCurrentSearch(query);
+    setPageNr(1);
   };
 
-  handleSubmit = query => {
-    this.setState({
-      images: [],
-      currentSearch: query,
-      pageNr: 1,
-    });
+  const handleClickMore = async () => {
+    setPageNr(prevPage => prevPage + 1);
   };
 
-  async componentDidUpdate(_, prevState) {
-    const { currentSearch, pageNr } = this.state;
-
-    if (
-      currentSearch !== prevState.currentSearch ||
-      pageNr !== prevState.pageNr
-    ) {
-      this.setState({ isLoading: true });
+  useEffect(() => {
+    if (!currentSearch) return;
+    const asyncWrapper = async () => {
       try {
+        setIsLoading(true);
         const response = await fetchImages(currentSearch, pageNr);
-
-        this.setState({
-          images: [...this.state.images, ...response],
-        });
+        setImages(prevImages => [...prevImages, ...response]);
       } catch (error) {
-        this.setState({ error: 'wrong' });
+        console.log('error');
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
+    };
+    asyncWrapper();
+  }, [pageNr, currentSearch]);
 
-  handleClickMore = async () => {
-    this.setState(prevState => ({ pageNr: prevState.pageNr + 1 }));
+  const handleImageClick = e => {
+    setModalOpen(true);
+    setModalAlt(e.target.alt);
+    setModalImg(e.target.name);
   };
 
-  handleImageClick = e => {
-    this.setState({
-      modalOpen: true,
-      modalAlt: e.target.alt,
-      modalImg: e.target.name,
-    });
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalAlt('');
+    setModalImg('');
   };
 
-  handleModalClose = () => {
-    this.setState({
-      modalOpen: false,
-      modalImg: '',
-      modalAlt: '',
-    });
-  };
-
-  render() {
-    return (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gridGap: '16px',
-          paddingBottom: '24px',
-        }}
-      >
-        {this.state.isLoading ? (
-          <Loader />
-        ) : (
-          <React.Fragment>
-            <Searchbar onSubmit={this.handleSubmit} />
-            <ImageGallery
-              onImageClick={this.handleImageClick}
-              images={this.state.images}
-            />
-            {this.state.images.length > 0 ? (
-              <Button onClick={this.handleClickMore} />
-            ) : null}
-          </React.Fragment>
-        )}
-        {this.state.modalOpen ? (
-          <Modal
-            src={this.state.modalImg}
-            alt={this.state.modalAlt}
-            handleClose={this.handleModalClose}
-          />
-        ) : null}
-      </div>
-    );
-  }
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: '16px',
+        paddingBottom: '24px',
+      }}
+    >
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <React.Fragment>
+          <Searchbar onSubmit={handleSubmit} />
+          <ImageGallery onImageClick={handleImageClick} images={images} />
+          {images.length > 0 ? <Button onClick={handleClickMore} /> : null}
+        </React.Fragment>
+      )}
+      {modalOpen ? (
+        <Modal src={modalImg} alt={modalAlt} handleClose={handleModalClose} />
+      ) : null}
+    </div>
+  );
 }
