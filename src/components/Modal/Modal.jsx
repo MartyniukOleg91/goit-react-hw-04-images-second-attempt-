@@ -10,7 +10,7 @@ export default function Modal({ src, alt, handleClose }) {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-  }, []);
+  });
 
   const closeModalClick = e => {
     if (e.target === e.currentTarget) {
