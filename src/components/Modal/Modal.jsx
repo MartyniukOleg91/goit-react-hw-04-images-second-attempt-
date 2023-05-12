@@ -10,11 +10,16 @@ export default function Modal({ src, alt, handleClose }) {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const closeModalClick = e => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   return (
-    <div className={css.Overlay} onClick={handleClose}>
+    <div className={css.Overlay} onClick={closeModalClick}>
       <div className={css.Modal}>
         <img src={src} alt={alt} />
       </div>

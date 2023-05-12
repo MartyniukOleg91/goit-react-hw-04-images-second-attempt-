@@ -48,7 +48,7 @@ export default function App() {
     setModalImg(e.target.name);
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = e => {
     setModalOpen(false);
     setModalAlt('');
     setModalImg('');
