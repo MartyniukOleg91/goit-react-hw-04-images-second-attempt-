@@ -14,12 +14,14 @@ export default function App() {
   const [pageNr, setPageNr] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImg, setModalImg] = useState('');
+  const [totalImages, setTotalImages] = useState(0);
   const [modalAlt, setModalAlt] = useState('');
 
   const handleSubmit = query => {
     setImages([]);
     setCurrentSearch(query);
     setPageNr(1);
+    setTotalImages(0);
   };
 
   const handleClickMore = async () => {
@@ -31,8 +33,12 @@ export default function App() {
     const asyncWrapper = async () => {
       try {
         setIsLoading(true);
-        const response = await fetchImages(currentSearch, pageNr);
-        setImages(prevImages => [...prevImages, ...response]);
+        const { images, totalImages } = await fetchImages(
+          currentSearch,
+          pageNr
+        );
+        setImages(prevImages => [...prevImages, ...images]);
+        setTotalImages(totalImages);
       } catch (error) {
         console.log('error');
       } finally {
@@ -63,15 +69,17 @@ export default function App() {
         paddingBottom: '24px',
       }}
     >
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <React.Fragment>
-          <Searchbar onSubmit={handleSubmit} />
+      <Searchbar onSubmit={handleSubmit} />
+      <React.Fragment>
+        {images.length && (
           <ImageGallery onImageClick={handleImageClick} images={images} />
-          {images.length > 0 ? <Button onClick={handleClickMore} /> : null}
-        </React.Fragment>
-      )}
+        )}
+
+        {!isLoading && images.length !== totalImages && (
+          <Button onClick={handleClickMore} />
+        )}
+      </React.Fragment>
+      {isLoading && <Loader />}
       {modalOpen ? (
         <Modal src={modalImg} alt={modalAlt} handleClose={handleModalClose} />
       ) : null}
